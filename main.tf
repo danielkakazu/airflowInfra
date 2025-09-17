@@ -122,24 +122,18 @@ resource "azurerm_postgresql_flexible_server" "airflow" {
   location            = var.location
   version             = "13"
   delegated_subnet_id = azurerm_subnet.aks_subnet.id
+  private_dns_zone_id = azurerm_private_dns_zone.postgresql.id
 
   sku_name = "Standard_B1ms"
 
-  administrator_login = "pgadmin"
+  administrator_login          = "pgadmin"
+  administrator_login_password = random_password.postgresql_admin.result
 
-  administrator_login {
-    password = random_password.postgresql_admin.result
-  }
-
-  storage {
-    storage_size_gb = 32
-    auto_grow       = true
-  }
-
-  backup {
-    backup_retention_days = 7
-    geo_redundant_backup  = "Disabled"
-  }
+  storage_mb               = 32768
+  backup_retention_days    = 7
+  auto_grow_enabled        = true
+  geo_redundant_backup_enabled = false
+  zone                     = "1"
 
   high_availability {
     mode = "Disabled"
@@ -149,4 +143,5 @@ resource "azurerm_postgresql_flexible_server" "airflow" {
     public_network_access_enabled = false
   }
 }
+
 
