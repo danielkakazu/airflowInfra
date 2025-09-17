@@ -1,10 +1,11 @@
 variable "app_name" {
   type        = string
-  description = "Nome base da aplicação"
+  description = "App name"
+  default     = "airflow"
 }
 
 variable "location" {
   type        = string
-  description = "Região do Azure para os recursos"
-  default     = "eastus"
+  description = "Azure region"
+  default     = "centralus"
 }
