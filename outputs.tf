@@ -1,0 +1,16 @@
+output "kube_config" {
+  value     = azurerm_kubernetes_cluster.main.kube_config[0]
+  sensitive = true
+}
+
+output "acr_name" {
+  value = azurerm_container_registry.acr.name
+}
+
+output "storage_account_name" {
+  value = azurerm_storage_account.airflow.name
+}
+
+output "resource_group_name" {
+  value = azurerm_resource_group.rg.name
+}
