@@ -16,7 +16,7 @@ output "resource_group_name" {
 }
 
 output "postgresql_host" {
-  value = azurerm_postgresql_flexible_server.airflow.fqdn
+  value = azurerm_postgresql_flexible_server.airflowdb.fqdn
 }
 
 output "postgresql_admin_password" {
