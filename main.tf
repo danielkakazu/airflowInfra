@@ -98,45 +98,31 @@ resource "azurerm_subnet" "aks_subnet" {
 }
 
 # ========================= PostgreSQL =========================
-resource "random_password" "postgresql_admin" {
-  length           = 16
-  special          = true
-  override_special = "-_"
-}
-
-resource "azurerm_private_dns_zone" "postgresql" {
-  name                = "privatelink.postgres.database.azure.com"
-  resource_group_name = azurerm_resource_group.rg.name
-}
-
-resource "azurerm_private_dns_zone_virtual_network_link" "postgresql" {
-  name                  = "postgresql-dns-link"
-  resource_group_name   = azurerm_resource_group.rg.name
-  private_dns_zone_name = azurerm_private_dns_zone.postgresql.name
-  virtual_network_id    = azurerm_virtual_network.aks_vnet.id
-}
-
 resource "azurerm_postgresql_flexible_server" "airflow" {
   name                = "${var.app_name}-postgresql"
-  location            = var.location
   resource_group_name = azurerm_resource_group.rg.name
-  administrator_login = "pgadmin"
-  administrator_login_password = random_password.postgresql_admin.result
+  location            = var.location
   version             = "13"
-
-  storage {
-    size_gb = 32
-  }
+  delegated_subnet_id = azurerm_subnet.aks_subnet.id
+  private_dns_zone_id = azurerm_private_dns_zone.postgresql.id
 
   sku_name = "Standard_B1ms"
-  high_availability = "Disabled"
 
-  backup {
-    backup_retention_days = 7
+  administrator_login          = "pgadmin"
+  administrator_login_password = random_password.postgresql_admin.result
+
+  storage_mb               = 32768
+  backup_retention_days    = 7
+  auto_grow_enabled        = true
+  geo_redundant_backup_enabled = false
+  zone                     = "1"
+
+  high_availability {
+    mode = "Disabled"
   }
 
   network {
-    delegated_subnet_id = azurerm_subnet.aks_subnet.id
-    private_dns_zone_id = azurerm_private_dns_zone.postgresql.id
+    public_network_access_enabled = false
   }
 }
+
