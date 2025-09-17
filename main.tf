@@ -36,7 +36,7 @@ resource "azurerm_kubernetes_cluster" "main" {
 
 # ========================= ACR =========================
 resource "azurerm_container_registry" "acr" {
-  name                = "${var.app_name}-acr-${random_string.suffix.result}"
+  name                = "${var.app_name}acr${random_string.suffix.result}"
   resource_group_name = azurerm_resource_group.rg.name
   location            = var.location
   sku                 = "Standard"
@@ -51,7 +51,7 @@ resource "azurerm_role_assignment" "main" {
 
 # ========================= Storage =========================
 resource "azurerm_storage_account" "airflow" {
-  name                     = "${var.app_name}-airflowsa-${random_string.suffix.result}"
+  name                     = "${var.app_name}airflowsa${random_string.suffix.result}"
   resource_group_name      = azurerm_resource_group.rg.name
   location                 = var.location
   account_tier             = "Standard"
