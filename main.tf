@@ -144,6 +144,5 @@ resource "azurerm_postgresql_flexible_server" "airflow" {
   zone                     = "1"
 
   public_network_access_enabled = true
-  ssl_enforcement_enabled       = false
 }
 
