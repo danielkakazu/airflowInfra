@@ -7,6 +7,12 @@ resource "random_string" "suffix" {
   special = false
 }
 
+resource "random_password" "postgresql_admin" {
+  length           = 16
+  special          = true
+  override_special = "-_"
+}
+
 resource "azurerm_resource_group" "rg" {
   name     = "${var.app_name}rg"
   location = var.location
@@ -98,7 +104,7 @@ resource "azurerm_subnet" "aks_subnet" {
 }
 
 # ========================= PostgreSQL =========================
-resource "azurerm_postgresql_flexible_server" "airflow" {
+resource "azurerm_postgresql_flexible_server" "airflowdb" {
   name                = "${var.app_name}-postgresql"
   resource_group_name = azurerm_resource_group.rg.name
   location            = var.location
