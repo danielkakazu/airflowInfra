@@ -12,6 +12,12 @@ resource "azurerm_resource_group" "rg" {
   location = var.location
 }
 
+resource "azurerm_role_assignment" "rg_owner" {
+  scope                = azurerm_resource_group.rg.id
+  role_definition_name = "Owner"
+  principal_id         = azurerm_kubernetes_cluster.main.identity[0].principal_id
+}
+
 # ========================= AKS =========================
 resource "azurerm_kubernetes_cluster" "main" {
   name                = "${var.app_name}-aks"
@@ -95,7 +101,18 @@ resource "azurerm_subnet" "aks_subnet" {
   resource_group_name  = azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.aks_vnet.name
   address_prefixes     = ["10.0.1.0/24"]
+
+  delegation {
+    name = "postgresql-flexible-delegation"
+    service_delegation {
+      name = "Microsoft.DBforPostgreSQL/flexibleServers"
+      actions = [
+        "Microsoft.Network/virtualNetworks/subnets/action",
+      ]
+    }
+  }
 }
+
 
 # ========================= PostgreSQL =========================
 resource "random_password" "postgresql_admin" {
