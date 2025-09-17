@@ -144,4 +144,3 @@ resource "azurerm_postgresql_flexible_server" "airflow" {
   }
 }
 
-
