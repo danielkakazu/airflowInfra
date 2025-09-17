@@ -124,7 +124,7 @@ resource "azurerm_postgresql_flexible_server" "airflow" {
   delegated_subnet_id = azurerm_subnet.aks_subnet.id
   private_dns_zone_id = azurerm_private_dns_zone.postgresql.id
 
-  sku_name = "Standard_B1ms"
+  sku_name = "B_Standard_B1ms"
 
   administrator_login          = "pgadmin"
   administrator_password       = random_password.postgresql_admin.result
