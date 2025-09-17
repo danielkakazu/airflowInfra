@@ -143,6 +143,6 @@ resource "azurerm_postgresql_flexible_server" "airflow" {
   storage_mb               = 32768
   zone                     = "1"
 
-  public_network_access_enabled = true
+  public_network_access_enabled = false
 }
 
