@@ -14,3 +14,12 @@ output "storage_account_name" {
 output "resource_group_name" {
   value = azurerm_resource_group.rg.name
 }
+
+output "postgresql_host" {
+  value = azurerm_postgresql_flexible_server.airflow.fqdn
+}
+
+output "postgresql_admin_password" {
+  value     = random_password.postgresql_admin.result
+  sensitive = true
+}

@@ -1,4 +1,4 @@
-# Infraestrutura Azure (AKS, ACR, Storage, etc.)
+# Infraestrutura Azure (AKS, ACR, Storage, PostgreSQL)
 
 resource "random_string" "suffix" {
   length  = 6
@@ -8,10 +8,11 @@ resource "random_string" "suffix" {
 }
 
 resource "azurerm_resource_group" "rg" {
-  name     = "${var.app_name}-rg"
+  name     = "${var.app_name}rg"
   location = var.location
 }
 
+# ========================= AKS =========================
 resource "azurerm_kubernetes_cluster" "main" {
   name                = "${var.app_name}-aks"
   location            = var.location
@@ -33,6 +34,7 @@ resource "azurerm_kubernetes_cluster" "main" {
   }
 }
 
+# ========================= ACR =========================
 resource "azurerm_container_registry" "acr" {
   name                = "${var.app_name}-acr-${random_string.suffix.result}"
   resource_group_name = azurerm_resource_group.rg.name
@@ -47,6 +49,7 @@ resource "azurerm_role_assignment" "main" {
   scope                = azurerm_container_registry.acr.id
 }
 
+# ========================= Storage =========================
 resource "azurerm_storage_account" "airflow" {
   name                     = "${var.app_name}-airflowsa-${random_string.suffix.result}"
   resource_group_name      = azurerm_resource_group.rg.name
@@ -76,5 +79,64 @@ resource "azurerm_storage_management_policy" "prune_logs" {
         delete_after_days_since_modification_greater_than = 7
       }
     }
+  }
+}
+
+# ========================= VNet/Subnet =========================
+resource "azurerm_virtual_network" "aks_vnet" {
+  name                = "${var.app_name}-vnet"
+  address_space       = ["10.0.0.0/16"]
+  location            = var.location
+  resource_group_name = azurerm_resource_group.rg.name
+}
+
+resource "azurerm_subnet" "aks_subnet" {
+  name                 = "aks-subnet"
+  resource_group_name  = azurerm_resource_group.rg.name
+  virtual_network_name = azurerm_virtual_network.aks_vnet.name
+  address_prefixes     = ["10.0.1.0/24"]
+}
+
+# ========================= PostgreSQL =========================
+resource "random_password" "postgresql_admin" {
+  length           = 16
+  special          = true
+  override_special = "-_"
+}
+
+resource "azurerm_private_dns_zone" "postgresql" {
+  name                = "privatelink.postgres.database.azure.com"
+  resource_group_name = azurerm_resource_group.rg.name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "postgresql" {
+  name                  = "postgresql-dns-link"
+  resource_group_name   = azurerm_resource_group.rg.name
+  private_dns_zone_name = azurerm_private_dns_zone.postgresql.name
+  virtual_network_id    = azurerm_virtual_network.aks_vnet.id
+}
+
+resource "azurerm_postgresql_flexible_server" "airflow" {
+  name                = "${var.app_name}-postgresql"
+  location            = var.location
+  resource_group_name = azurerm_resource_group.rg.name
+  administrator_login = "pgadmin"
+  administrator_login_password = random_password.postgresql_admin.result
+  version             = "13"
+
+  storage {
+    size_gb = 32
+  }
+
+  sku_name = "Standard_B1ms"
+  high_availability = "Disabled"
+
+  backup {
+    backup_retention_days = 7
+  }
+
+  network {
+    delegated_subnet_id = azurerm_subnet.aks_subnet.id
+    private_dns_zone_id = azurerm_private_dns_zone.postgresql.id
   }
 }
