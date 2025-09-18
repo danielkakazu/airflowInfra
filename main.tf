@@ -76,7 +76,7 @@ resource "azurerm_storage_management_policy" "prune_logs" {
     }
     actions {
       base_blob {
-        delete_after_days_since_modification_greater_than = 7
+        delete_after_days_since_modification_greater_than = 4
       }
     }
   }
